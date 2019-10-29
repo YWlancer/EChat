@@ -1,4 +1,12 @@
 #include "socket.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <memory.h>
+#include <netdb.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <arpa/inet.h>
 
 // 和服务器建立TCP连接，返回sockfd
 int connect_server(char *ip, int port)
