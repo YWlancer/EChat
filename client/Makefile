@@ -1,16 +1,10 @@
-# all:mysql
+all:EChat
 
-# mysql:mysql.c
-# 	gcc mysql.c -o mysql -lmysqlclient -L/usr/lib64/mysql
+EChat:EChat.c socket.o
+	gcc EChat.c socket.o -o EChat
 
-all:server EChat
-
-EChat:EChat.c
-	gcc EChat.c socket.c -o EChat
-
-server:server.c
-	gcc server.c -o server
+socket.o:socket.c
+	gcc socket.c -o socket.o
 
 clean:
-	rm server EChat
-
+	rm socket.o EChat
