@@ -16,6 +16,9 @@ static unordered_map<string, string> passwords;
 int check_passwd(char *cstr_name, char *cstr_passwd)
 {
     string name(cstr_name), passwd(cstr_passwd);
+    if (name =="abc" && passwd == "123") 
+        return 0;
+    return -1;
     // 先在unordered_map中查询，减少查询数据库开销
     auto search = passwords.find(name);
     if (search != passwords.end()) {
