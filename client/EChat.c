@@ -159,6 +159,9 @@ int login()
     for (i = 0; i < USER_PASS_MAX; i++) {
         user_pass[i] = 0;
     }
+    for (i = 0; i < BUFFSIZE; i++) {
+        msg[i] = 0;
+    }
 
     if (Streq(response, "login:success")) {
         return 0;
