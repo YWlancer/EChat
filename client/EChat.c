@@ -6,6 +6,7 @@
 
 /* 操作系统头文件 */
 #include <unistd.h>
+#include <sys/socket.h>
 
 /* 其他头文件 */
 #include "terminal.h"
@@ -13,6 +14,7 @@
 
 #define USER_NAME_MAX   20
 #define USER_PASS_MAX   32
+#define BUFFSIZE        512
 #define Streq(s1, s2) (strcmp((s1), (s2)) == 0)
 
 #define Fgets(str, n, file) do {        \
@@ -28,10 +30,12 @@ static char user_pass[USER_PASS_MAX + 1]; // +1 for null character
 
 const static char *ip = "127.0.0.1";
 const static int port = 9901;
+static int sockfd;
 
 void check_args(int argc, char *argv[]);
 int read_username();
 int read_passwd();
+int login();
 
 int main(int argc, char *argv[])
 {
@@ -40,9 +44,16 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    int sockfd = connect_server(ip, port);
+    sockfd = connect_server(ip, port);
     if (sockfd < 0) {
         puts("connect server failed ");
+        exit(1);
+    }
+
+    if (login() != 0) {
+        puts("login failed ");
+        shutdown(sockfd, SHUT_RDWR);
+        exit(1);
     }
 
     exit(0);
@@ -115,4 +126,42 @@ int read_passwd()
     }
     strncpy(user_pass, line, USER_PASS_MAX + 1);
     return 0;
+}
+
+/* 验证登录成功返回0，否则返回-1 */
+int login()
+{
+    char msg[BUFFSIZE] = "login:";
+    int i;
+    // 用户名和密码中应不含':'
+    for (i = 0; i < USER_NAME_MAX; i++) {
+        if (user_name[i] == ':') {
+            return -1;
+        }
+    }
+    for (i = 0; i < USER_PASS_MAX; i++) {
+        if (user_pass[i] == ':') {
+            return -1; 
+        }
+    }
+    strcat(msg, user_name);
+    strcat(msg, ":");
+    strcat(msg, user_pass);
+    if (send_message(sockfd, msg, sizeof(msg)) < 0) {
+        return -1;
+    }
+    char response[BUFFSIZE] = { 0 };
+    if (recv_message(sockfd, response, sizeof(response)) < 0) {
+        return -1;
+    }
+
+    // 清除密码，这里不能用memset函数
+    for (i = 0; i < USER_PASS_MAX; i++) {
+        user_pass[i] = 0;
+    }
+
+    if (Streq(response, "login:success")) {
+        return 0;
+    }
+    return -1;
 }
