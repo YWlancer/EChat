@@ -9,6 +9,7 @@
 
 /* 其他头文件 */
 #include "terminal.h"
+#include "socket.h"
 
 #define USER_NAME_MAX   20
 #define USER_PASS_MAX   32
@@ -25,6 +26,9 @@
 static char user_name[USER_NAME_MAX + 1]; // +1 for null character
 static char user_pass[USER_PASS_MAX + 1]; // +1 for null character
 
+const static char *ip = "127.0.0.1";
+const static int port = 9901;
+
 void check_args(int argc, char *argv[]);
 int read_username();
 int read_passwd();
@@ -34,6 +38,11 @@ int main(int argc, char *argv[])
     check_args(argc, argv);
     if (read_username() != 0 || read_passwd() != 0 ) {
         exit(1);
+    }
+
+    int sockfd = connect_server(ip, port);
+    if (sockfd < 0) {
+        puts("connect server failed ");
     }
 
     exit(0);

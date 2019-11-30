@@ -1,8 +1,15 @@
-#ifndef SOCKET_H_
-#define SOCKET_H_
+#ifndef _SOCKET_H_
+#define _SOCKET_H_
 
-int connect_server(char *ip, int port);
-int send_message(int sockfd, char *msg, size_t size);
-int recv_message(int sockfd, char *msg, size_t size);
+#include <string.h> // for size_t
 
-#endif // SOCKET_H_
+/* 和服务器建立TCP连接，成功返回sockfd，失败返回-1 */
+int connect_server(const char *ip, int port);
+
+/* 发送数据，若出错，返回-1 */
+int send_message(int sockfd, const void *msg, size_t size);
+
+/* 接受数据，若出错，返回-1 */
+int recv_message(int sockfd, void *msg, size_t size);
+
+#endif

@@ -1,51 +1,44 @@
 #include "socket.h"
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <memory.h>
-#include <netdb.h>
-#include <sys/socket.h>
 #include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>
 
-// 和服务器建立TCP连接，返回sockfd
-int connect_server(char *ip, int port)
+/* 和服务器建立TCP连接，成功返回sockfd，失败返回-1 */
+int connect_server(const char *ip, int port)
 {
-	int sockfd = socket(AF_INET,SOCK_STREAM, 0);
-	if(sockfd < 0){
-		perror("socket error");
-		exit(1);
-	}
-	
-	//往serveraddr填入ip、port、地址族类型（IPv4）
-	struct sockaddr_in serveraddr;
-	memset(&serveraddr, 0, sizeof(serveraddr));
-	serveraddr.sin_family = AF_INET;
-	serveraddr.sin_port = htons(port);
-	//将ip地址转化为网络字节序
-	//inet_pton(AF_INET,"127.0.0.1",&serveraddr.sin_addr.s_addr);
-	serveraddr.sin_addr.s_addr=inet_addr(ip);
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if(sockfd < 0){
+        return -1;
+    }
 
-	/*步骤2：客户端调用connect函数连接到服务器端
-	*/
-	int res;
-	if ((res = connect(sockfd, (struct sockaddr*)&serveraddr, sizeof(serveraddr))) < 0){
-		perror("connect error");
-		exit(1);
-	}
+    struct sockaddr_in serveraddr;
+    memset(&serveraddr, 0, sizeof(serveraddr));
+    serveraddr.sin_family = AF_INET;
+    serveraddr.sin_port = htons(port);
+    serveraddr.sin_addr.s_addr = inet_addr(ip);
+
+    if (connect(sockfd, (struct sockaddr*)&serveraddr, sizeof(serveraddr)) < 0) {
+        return -1;
+    }
     return sockfd;
 }
 
-int send_message(int sockfd, char *msg, size_t size)
+/* 发送数据，若出错，返回-1 */
+int send_message(int sockfd, const void *msg, size_t size)
 {
-    if (write(sockfd, msg, size) < 0){
-		perror("write msg error");
-	}
+    int ret = -1;
+    if (write(sockfd, msg, size) != size){
+        return ret;
+    }
+    return size;
 }
 
-int recv_message(int sockfd, char *msg, size_t size)
+/* 接受数据，若出错，返回-1 */
+int recv_message(int sockfd, void *msg, size_t size)
 {
-    if (read(sockfd, msg, size) < 0){
-		perror("read msg error");
-	}
+    int ret = -1;
+    ret = read(sockfd, msg, size);
+    return ret;
 }
