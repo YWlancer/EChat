@@ -56,6 +56,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    puts("login success");
     exit(0);
 }
 
@@ -102,6 +103,10 @@ int read_username()
                 return -1;
             }
         }
+        if (strlen(line) == 0) {
+            puts("input user name");
+            return -1;
+        }
         strncpy(user_name, line, USER_NAME_MAX + 1);
     }
     return 0;
@@ -117,6 +122,11 @@ int read_passwd()
     } 
     Fgets(line, USER_PASS_MAX + 2, stdin);
     if (set_echo(STDIN_FILENO, SET_ECHO_ON) != 0) { // 开启回显
+        return -1;
+    }
+    printf("\n");
+    if (strlen(line) == 0) {
+        puts("input user password");
         return -1;
     }
 
