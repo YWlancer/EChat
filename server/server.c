@@ -9,17 +9,12 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+/* else */
+#include "passwd.h"
+
 #define BUFFSIZE 512
 #define BACKLOG 32
 const static int port = 9901;
-
-/* 测试用 */
-int check_passwd(const char *name, const char *passwd)
-{
-    if (strcmp(name, "abc") == 0 && strcmp(passwd, "123") == 0) 
-        return 0;
-    return -1;
-}
 
 void deal_msg(const char *buf, char *response)
 {

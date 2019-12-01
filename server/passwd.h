@@ -1,7 +1,7 @@
-#ifndef _passwd_h_
-#define _passwd_h_
+#ifndef _PASSWD_H_
+#define _PASSWD_H_
 
-extern "C" int check_passwd(char *cstr_name, char *cstr_passwd);
-extern "C" int add_user(char *cstr_name, char *cstr_passwd);
+int check_passwd(const char *name, const char *passwd);
+int add_user(const char *name, const char *passwd);
 
 #endif
