@@ -8,8 +8,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <pthread.h>
 
-/* else */
+/* 其他头文件 */
 #include "passwd.h"
 
 #define BUFFSIZE 512
@@ -25,7 +26,7 @@ void deal_msg(const char *buf, char *response)
     }
     key[i] = '\0';
     index++;
-    // login
+    /* login */
     if (!strcmp(key, "login")){
         char name[48], passwd[48];
         for(i = 0; index < BUFFSIZE && buf[index] != ':';){
@@ -33,20 +34,49 @@ void deal_msg(const char *buf, char *response)
         }
         name[i] = '\0';
         index++;
-        // passwd以'\0'结尾
+        /* passwd以'\0'结尾 */
         for(i = 0; index < BUFFSIZE && buf[index] != '\0';){
             passwd[i++] = buf[index++];
         }
         passwd[i] = '\0';
-        //printf("name : %s \npasswd : %s\n", name, passwd);
         if (check_passwd(name, passwd) == 0) {
             strcat(response, "login:success");
         } else {
             strcat(response, "login:fail");
         }
+    } else {
+        strcat(response, "unrecognized message");
     }
 }
 
+/* 接受客户端请求 */
+void *accept_request(void* p_sockfd)
+{
+    int client_socket = *(int *)p_sockfd;
+    char msg[BUFFSIZE];
+    // 不断读写
+    while (1) {
+        memset(msg, 0, sizeof(msg));
+        int size = read(client_socket, msg, sizeof(msg));
+        if (size  < 0){
+            puts("recv error");
+            break;
+        } else if (size == 0) {
+            break;
+        }
+        printf("msg : %s \n", msg);
+        char response[BUFFSIZE];
+        memset(response, 0, sizeof(response));
+        deal_msg(msg, response);
+        printf("res : %s \n", response);
+        if (write(client_socket, response, sizeof(response)) < 0) {
+            puts("send error");
+            break;
+        }
+    }
+}
+
+/* 创建socket，创建线程处理客户端请求 */
 int main()
 {
     int server_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -73,30 +103,16 @@ int main()
     while (1) {
         int client_socket = accept(server_socket, NULL, NULL); // 空指针表示不关心客户端标志
         if (client_socket < 0) {
-            puts("socket error");
+            puts("accept error");
             continue;
         }
-        char msg[BUFFSIZE];
-        // 不断读写
-        while (1) {
-            memset(msg, 0, sizeof(msg));
-            int size = read(client_socket, msg, sizeof(msg));
-            if (size  < 0){
-                puts("recv error");
-                break;
-            } else if (size == 0) {
-                break;
-            }
-            printf("msg : %s \n", msg);
-            char response[BUFFSIZE];
-            memset(response, 0, sizeof(response));
-            deal_msg(msg, response);
-            printf("res : %s \n", response);
-            if (write(client_socket, response, sizeof(response)) < 0) {
-                puts("send error");
-                break;
-            }
+        pthread_t newthread;
+        if (pthread_create(&newthread , NULL, accept_request, &client_socket) != 0) {
+            puts("pthread_create failed");
         }
     }
+
+    close(server_socket);
+
     return 0;
 }
